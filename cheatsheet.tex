@@ -1,0 +1,193 @@
+\documentclass[11pt,landscape]{article}
+\usepackage{multicol}
+\usepackage{calc}
+\usepackage{ifthen}
+\usepackage[landscape]{geometry}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{enumitem}
+\setlist{nolistsep}
+\usepackage{titlesec}
+\ifthenelse{\lengthtest { \paperwidth = 11in}}
+	{ \geometry{top=.5in,left=.5in,right=.5in,bottom=.5in} }
+	{\ifthenelse{ \lengthtest{ \paperwidth = 297mm}}
+		{\geometry{top=1cm,left=1cm,right=1cm,bottom=1cm} }
+		{\geometry{top=1cm,left=1cm,right=1cm,bottom=1cm} }
+	}
+
+% Turn off header and footer
+\pagestyle{empty}
+ \titlespacing{\section}{0pt}{\parskip}{-\parskip}
+
+% Redefine section commands to use less space
+\makeatletter
+\renewcommand{\section}{\@startsection{section}{1}{0mm}%
+                                {-1ex plus -.5ex minus -.2ex}%
+                                {0.5ex plus .2ex}%x
+                                {\normalfont\normalsize\bfseries}}
+\renewcommand{\subsection}{\@startsection{subsection}{2}{0mm}%
+                                {-1explus -.5ex minus -.2ex}%
+                                {0.5ex plus .2ex}%
+                                {\normalfont\normalsize\bfseries}}
+\renewcommand{\subsubsection}{\@startsection{subsubsection}{3}{0mm}%
+                                {-1ex plus -.5ex minus -.2ex}%
+                                {1ex plus .2ex}%
+                                {\normalfont\small\bfseries}}
+\makeatother
+
+% Define BibTeX command
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+% Don't print section numbers
+\setcounter{secnumdepth}{0}
+
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt plus 0.5ex}
+
+
+% -----------------------------------------------------------------------
+
+\begin{document}
+
+\raggedright
+\footnotesize
+\begin{multicols}{3}
+
+
+% multicol parameters
+% These lengths are set only within the two main columns
+%\setlength{\columnseprule}{0.25pt}
+\setlength{\premulticols}{1pt}
+\setlength{\postmulticols}{1pt}
+\setlength{\multicolsep}{0pt}
+\setlength{\columnsep}{0.5pt}
+%\renewcommand{\bf}{\it}
+%\begin{center}
+%     \Large{\textbf{Data Mining---Cheat sheet}} \\
+%\end{center}
+\section{General Remarks}
+\begin{tabular}{ l c  }
+$l_2$-euclidean distance & $\sqrt{\sum_{i=1}^D (x_i-y_i)^2}$ \\
+$l_1$-manhatten distance & $\sum_{i=1}^D \left|x_i-y_i\right|$\\
+$l_p$-distance & $(\sum_{i=1}^D |x_i-y_i|^p)^{1/p}$ \\
+$l_\infty$-distance & $\max_i | x_i - y_i| $ \\
+Mahalanobis norm & $||w||^2_G = ||Gw||^2_2$ \\
+Cosine-Distance & $\arccos \frac{x^T y}{||x||_2 ||y||_2}$ \\
+Jaccard-Distance & $1-\text{Sim}(A,B) = 1 - \frac{|A \cap B|}{|A \cup B|}$
+\end{tabular}
+\subsection{Function Properties}
+\begin{description}
+    \item[Concave function] A function $f$ is called concave if
+    $f(a + s) - f(a) \geq f(b + s) - f(b)~\forall a \leq b, s > 0$
+    \item[Convex functions] A function $f: S \rightarrow \mathbb{R}$, $S \subseteq \mathbb{R}^d$, is called convex if $\forall x,x' \in S, \lambda \in [0,1]$ it holds that 
+    $$\lambda f(x) + (1 - \lambda) f(x') \geq f(\lambda x + (1 - \lambda) x')$$
+    %\item[H-strongly convex] A function f is called H-strongly convex, if
+    %$$f(x') \geq f(x) + \Delta f(X)^T (x'-x) + \frac{H}{2} ||x' -x ||^2$$
+    %that is, $f$ is at any point lower bounded by a quadratic function tight at that point. In $1$-D: $f$ is strongly convex $\iff \exists H>0 \colon f''(x) \geq \frac{H}{2} \forall x$. %In $d$-D: $f$ is strongly convex $\iff$ Hessian Matrix must has all eigenvalues $\geq \frac{H}{2} \forall x$.  
+    \item[Subgradients] Given a convex not necessarily differentiable function f, a subgradient $g_x \in \nabla f(x)$ is the slope of a linear lower bound of f, tight at x, that is
+    $$\forall x' \in S \colon f(x') \geq f(x) + g^T_x(x' - x)$$
+\end{description}
+%\subsection{Gradients and Formulas}
+%\begin{itemize}
+%    \item $e^{ic} = \cos(c) + i \cdot \sin(c)$
+%\end{itemize}
+
+%\begin{tabular}{ c c }
+%$f(z)=\max(0,1-y\ z)$ &  $ 
+%
+%\begin{cases}      
+%-y\ x_i &\text{if } y\ \mathbf{x}\cdot \mathbf{w} < 1 \\
+%0&\text{if } y\ \mathbf{x}\cdot \mathbf{w} \geq 1      
+%\end{cases} $\\
+%\end{tabular}
+
+\section{Locality Sensitive Hashing}
+	\begin{description}
+		\item[Near-duplicate detection] $ \{x,x' \in X, x \neq x' \text{s.t.} d(x,x') \leq \epsilon \}$
+		\item[$(r,\epsilon)$-neighbour search] 
+		Find all points with distance $\leq r$ and no points with distance $> (1+ \epsilon)r$ from query q.
+		Pick $(r,(1+\epsilon) \cdot r,p,q)$-sensitive family and boost.
+	    \item[Min-hashing] $h(C) = h_{\pi}(C) = \min_{i : C(i) = 1} \pi(i)$
+	    \subitem $\pi(i) = h_{a, b}(i) = (a \cdot i + b \mod p) \mod N)$,
+	    $p \text{ prime (fixed) } > N$, $N$ number of documents
+        \item[$(d1,d2,p1,p2)$-sensitivity] Assume $d_1 < d_2$, $p_1 > p_2$. Then
+        $$\forall x,y \in S: d(x,y) \leq d_1 \Rightarrow Pr[h(x)=h(y)] \geq p_1$$
+        $$\forall x,y \in S: d(x,y) \geq d_2 \Rightarrow Pr[h(x)=h(y)] \leq p_2$$
+        \item[r-way AND] $(d_1,d_2,p_1^r,p_2^r)$---more false negatives with bigger r
+        \item[b-way OR] $(d_1,d_2,1-(1-p_1)^b,1-(1-p_2)^b)$---more false positives with bigger b
+        \item[AND-OR cascade] $(d_1,d_2,1-(1-p_1^r)^b,1-(1-p_2^r)^b)$
+        \item[OR-AND cascade] $(d_1,d_2,(1-(1-p_1)^b)^r,(1-(1-p_2)^b)^r)$
+	\end{description}
+\subsection{Hash Functions}
+\begin{description}
+    \item[Euclidean distance] $h_{w,b}(x) =  \lfloor (\frac{w^Tx-b}{a}) \rfloor$
+where $w \leftarrow \frac{w}{||w||_2}$, $w \sim \mathcal{N}(0,I)$, $w_i \sim \mathcal{N}(0,1)$, $b \sim Unif([0,a])$, yields $(a/2,2a,1/2,1/3)$-sensitive
+    \item[Cosine distance] $\mathcal{H} = \{ h(v) = \text{sign}(w^Tv) \text{ for some } w \in \mathbb{R}^n \text{ s.t. } ||w||_2 = 1 \}$
+\end{description}
+
+\section{Support Vector Machines}
+\begin{description}
+    \item[Linear Classifier] $y = \text{sign} \left ( w^T x +b \right )$. Train classifier $\sim$ find $w$.
+    Want: $y_i w^T x_i > 0~\forall i$ for linearly separable data.
+    \item[SVM] SVM = Max margin linear classifier (with optional slack $\xi$)
+    $$ \min_{w, \xi} \frac{1}{2} w^T w + C \sum_{i=1}^{n} \xi_i \text{ s. t. } y_i w^T x_i > 1 - \xi_i~\forall i$$
+    Support vectors (SV) are all data points on the margin and data points with non-zero slack
+\end{description}
+\subsection{Equivalent primal SVM formulations}
+    \begin{description}
+        \item[Regularized hinge loss formulation] $$\min_w w^T w + C \sum_{i} \max(0,1-y_i w^T x_i)$$    
+        \item[Norm-constrained hinge loss minimization]    
+        $ \min_w \sum_{i} \max(0,1-y_iw^Tx_i)$ s.t. $||w||_2 \leq \frac{1}{\sqrt{\lambda}}$
+        
+        \item[Strongly convex formulation]
+        $ \text{arg } \min_w \frac{1}{T} \sum_{t=1}^{T} \left ( \frac{\lambda}{2} ||w||_2^2 + \max(0,1-y_t w^T x_t) \right )$\\ s.t. $ ||w||_2 \leq \frac{1}{\sqrt{\lambda}}$
+    \end{description}
+    \textbf{Small $C$, Big $\lambda$:} Greater margin, more misclassification
+
+\subsection{Kernels}
+\begin{description}
+    \item[Dual SVM Formulation] 
+    $\max_{\alpha_{1:n}} \sum_{i=1}^{n} \alpha_i - \frac{1}{2} \sum_{i,j} \alpha_i \alpha_j y_i y_j x_i^T x_j$\\ s.t. $ 0 \leq \alpha_i \leq C$\\
+    $\Rightarrow$ optimal w: $ w^{\ast} = \sum_{i} \alpha_i^{\ast} y_i x_i = \sum_{i \in \text{SV}} \alpha_i^{\ast} y_i x_i $ 
+    \item[Kernel trick] Substitute inner product $x_{i}^T x_{j}$ in dual formulation and in classification function with $k(x_{i}, x_{j}) = \phi(x_{i})^T \phi(x_{j})$, where $\phi(\cdot)$ is projection in higher dimensional data space (feature space). Classify new point $x$ with
+    $$y = \text{sign}(\sum_{i = 1}^{n} \alpha_{i} y_{i} k(x_{i}, x))$$
+    \item[Valid kernel functions] A kernel is function $k: X \times X \rightarrow \mathbb{R}$ satisfying:
+        \begin{enumerate}
+            \item Symmetry: For any $x,x' \in X$, $$k(x,x') = k(x',x)$$
+	        \item Positive semi-definitenss: For any $n$, any set $S = \{x_1,..,x_n\} \subseteq X$, the kernel matrix $K[i,j] = k(x_i,x_j)$ must be positive semi-definite, i.e. all eigenvalues must be $\geq 0$ ($x^T K x \geq 0~\forall x$). 
+        \end{enumerate}
+    \end{description}
+    
+\subsubsection{Random Features (Inverse Kernel Trick)}
+% $$x \in \mathbb{R}^d \overset{\text{kernel trick}}{\rightarrow} \Phi(x) \in \mathbb{R}^D \overset{\text{Inverse Kernel Trick}}{\rightarrow} z(x) \in \mathbb{R}^m$$ where $d << D$,$m<<D$,$m>d$. 
+\begin{description}
+    \item[Shift-invariant kernel] A kernel $k(x,y),x,y \in \mathbb{R}^d$ is called shift-invariant if $k(x,y) = k(x-y)$. Then the kernel has Fourier transform, such that: 
+    $$ k(x-y) = \int_{\mathbb{R}^d} p(w) \cdot e^{j w^T (x-y)} dw $$
+    where $p(w)$ is the Fourier transformation, i.e. we map $k(s)$ to another function $p(w)$.
+    \item[Random fourier features (prerequisites)] Interpret kernel as expectation 
+    $$ k(x-y) = \int_{\mathbb{R}^d} p(w) \cdot \underbrace{e^{j w^T (x-y)}}_{g(w)} dw = \mathbb{E}_{w,b} \left [ z_{w,b} (x) z_{w,b} (y) \right ]$$
+    where $z_{w,b}(x) = \sqrt{2} \cos \left (w^T x +b \right )$,\\ 
+    $b \sim U([0,2 \pi])$, $w \sim p(w)$
+    
+    \item[Random fourier features (kernel approximation)] The approximation goes as follows:
+    \begin{enumerate}
+	    \item Draw $(w_1,b_1),...,(w_m,b_m)$, $w_i \sim p, b_i \sim U([0, 2\pi])$ iid and fix them 
+	    \item Compute $z(x) = [z_{w_1,b_1}(x),...,z_{w_m,b_m}(x)]/\sqrt{m}$, so $z$ is a feature map
+	    \item $$z(x)^T z(y) = \frac{1}{m} \sum_{i=1}^{m} z_{w_i,b_i} (x) \cdot     z_{w_i,b_i} (y)$$
+	    Now this is again an average. If $m \rightarrow \infty$, then $z(x)^T z(y)     \rightarrow  \mathbb{E}_{w,b} ( z_{w,b}(x) \cdot z_{w,b} (y) ) = k(x-y)$     almost sure
+	    \item After transformation, use SGD to train SVM (primal formulation) in transformed space
+    \end{enumerate} 
+\end{description}
+
+
+%\rule{0.3\linewidth}{0.25pt}
+%\scriptsize
+
+\end{multicols}
+%Copyright \copyright\ 2014 Winston Chang
+
+%\href{http://www.stdout.org/~winston/latex/}{http://www.stdout.org/$\sim$winston/latex/}
+\end{document}
