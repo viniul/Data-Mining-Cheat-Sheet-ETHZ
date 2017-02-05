@@ -182,6 +182,162 @@ where $w \leftarrow \frac{w}{||w||_2}$, $w \sim \mathcal{N}(0,I)$, $w_i \sim \ma
     \end{enumerate} 
 \end{description}
 
+\section{Online Convex Programming}
+\begin{description}
+    \item[Regret] $R_T = (\sum_{t=1}^{T} l_t) - \min_{w \in S} \sum_{t=1}^{T} f_t(w)$
+    \item[No-regret] $\lim_{T \rightarrow \infty}\frac{R_T}{T} \rightarrow 0$
+    \item[Online convex programming (OCP)] An online convex programming algorithm is given by:
+        $$ w_{t+1} = Proj_S( w_t - \eta_t \nabla f_t(w_t))$$
+        $$ Proj_S(w) = arg \min_{w' \in S} ||w' - w ||_2$$
+    \item[Regret for OCP] $$ \frac{R_T}{T} \leq \frac{1}{\sqrt{T}} [||w_0 - w^*||_2^2 + ||\nabla f||_2^2] $$ where $||\nabla f||_2^2 = \sup_{w \in S, t \in \{1,\dots,T\}} ||\nabla f(w)||_2^2 $    
+    \item[Parallel stochastic gradient descent]
+    \begin{enumerate}
+        \item Split data into $k$ subsets, $k =$ number of machines
+        \item Each machine produces $w_i$ on its subset
+        \item After T iterations, compute $w = \frac{1}{k} \sum_{i = 1}^k w_i$
+    \end{enumerate}
+\end{description}
+
+\section{Active Learning}
+\begin{description}
+    \item[Uncertainty sampling] Repeat until we can infer all remaining labels:
+    \begin{enumerate}
+        \item Assign uncertainty score $U_t(x)$ to each unlabeled data point:
+        $U_t(x) = U \left ( x | x_{1:t-1},y_{1:t-1} \right )$
+        \item Greedily pick the most uncertain point and request label
+        $x_t = \text{arg } \max_x U_t(x)$ and retrain classifier
+    \end{enumerate}
+    \subitem For SVM: $U_t(x) = \frac{1}{|w^T x|}$, where $w^T$ obtained from points until $t-1$
+    \subitem Cost to pick m labels: $m \cdot n \cdot d + m \cdot C(m)$, where $n =$ number of data points, $d =$ dimensions, and $C(m) =$ cost to train classifier
+    \item[Hashing a hyperplane query] Draw $u,v \sim \mathcal{N}(0,I)$. Then resulting two-bit hash is: 
+    $$ h_{u,v}(a,b) = \left [ \text{ sign }(u^T a),\text{ sign }(v^T b) \right ]$$
+    Now, define the hash family as: 
+    $$
+    h_{\mathcal{H}}(z) = \begin{cases}
+        h_{u,v} (z,z) & \text{if $z$ is a database point vector} \\
+        h_{u,v} (z,-z) & \text{if $z$ is a query hyperplane vector}
+    \end{cases}$$
+    \item[Version space] Set of all classifiers consistent with the data: 
+        $V(D) = \{w : \forall (x,y) \in D : \text{ sign}(w^T x) = y \}$
+    \item[Relevant version space] $\hat{V}(D;U)$ describes all possible labelings $h$ of all unlabeled data $U$ that are still possible under some model $w$, or,
+    \begin{align*}
+        \hat{V}(D;U) &= \{h: U \rightarrow  \{+1,-1\}  : \exists w  \in V(D)\\ 
+        &\forall x \in U : \text{sign}(w^T x) = h(x) \}
+    \end{align*}
+    \item[Generalized Binary Search (GBS)] GBS works as follows:
+    \begin{enumerate}
+        \item Start with $D = \{\}$
+        \item While $|\hat{V}(D;U)| > 1$
+            \begin{itemize}
+                \item For each unlabeled example x in $U$ compute: 
+                $$ v^+(x) = |\hat{V}(D \cup \{(x,+)\}; U)|$$
+                $$ v^-(x) = |\hat{V}(D \cup \{(x,-)\}; U)|$$
+                that is the number of labelings still left if $x$ is $-$/$+$
+            \end{itemize}
+        \item Pick $x^{\ast} = \text{arg} \min_{x} \max(v^-(x),v^+(x))$
+    \end{enumerate}
+    Consider the following decision rules:
+    \begin{description}
+        \item[Max-min margin] $\max_x \min \left( m^+(x),m^-(x) \right)$
+        \item[Ratio margin] $\max_x \min \left (\frac{m^+(x)}{m^-(x)},\frac{m^-(x)}{m^+(x)} \right)$
+    \end{description}
+    where $m$ denotes the margin of the resulting SVM.
+\end{description}
+
+\section{Clustering}
+\subsection{K-Means}
+\begin{description}
+    \item[Cost Function] $$ L(\mu) = L(\mu_1,....,\mu_k) = \sum_{i=1}^N \underbrace{\min_{j \in \{1,\dots,k\}} ||x_i- \mu_j ||_2^2}_{d(\mu, x_{i})}$$ 
+    \item[Objective] $\mu^*  = \text{arg } \min_{\mu} L(\mu)$
+    \item[Algorithm] The k-means algorithm incorporates the following two steps:
+    \begin{enumerate}
+        \item Assign each point $x_{i}$ to closest center
+        $$z_{i} \leftarrow \text{arg } \min_{j \in \{1,\dots,l\}} ||x_{i} - \mu_{j}^{(t-1)}||_2^2$$
+        \item Update center as mean of assigned data points:
+        $$ \mu_j^{(t)} \leftarrow \frac{1}{n_j} \sum_{i: z_i = j} x_i$$
+    \end{enumerate}
+    \item[Online k-means algorithm] 
+        $$ \frac{d}{d \mu_j} d(\mu,x_t) =
+        \begin{cases}
+            0 & \text{ if }  j \notin \text{arg } \min_i ||\mu_i-x_t|| \\
+            2(u_j-x_t) & \text{ else}
+        \end{cases}$$
+     \begin{enumerate}
+         \item Initialize centers randomly
+         \item For $t=1:N$
+            \begin{itemize}
+                \item Find $c = \text{arg } \min ||\mu_j - x_t ||_2$
+                \item $\mu_c = \mu_c + \eta_t (x_t - \mu_c)$
+            \end{itemize}
+        \item For convergence:
+        $ \sum_t \eta_t = \infty$ and $\sum_t \eta_t^2 < \infty$, e.g. $\eta_t = \frac{c}{t}$.
+     \end{enumerate}
+\end{description} 
+
+\subsection{Coresets}
+\begin{description}
+    \item[Key idea] Replace many points by one weighted representative, thus, obtain C
+    $ L_k(u;C) = \sum_{(w,x) \in C} w \cdot \min_j || u_j - x ||_2^2$
+    \item[$(k,\epsilon)$-coreset] $C$ is called a $(k,\epsilon)$-coreset for $D$, if for all $\mu$:
+    $(1-\epsilon) L_k(\mu;D) \leq L_k(\mu;C) \leq (1+\epsilon) L_k(\mu;D)$
+\end{description}
+
+\section{Bandits}
+\begin{description}
+    \item[$\epsilon$-greedy] The algorithm goes as follows:
+    \begin{enumerate}
+        \item Set $\epsilon_t = \mathcal{O}(\frac{1}{t})$
+        \item With probability $\epsilon_t$: explore by picking uniformly at random
+        \item With probability $1 - \epsilon_t$: exploit by picking arm with highest empirical mean
+    \end{enumerate}
+    Regret: $R_T = \mathcal{O}(k \log(T))$
+\end{description}
+\subsection{UCB1 \& LinUCB}
+\begin{description}
+    \item[Hoeffding's inequality] $\Pr(|\mu - \frac{1}{m} \sum_{t=1}^m X_t | \geq b) \leq 2 \cdot \exp(-2b^2m)$
+    \item[UCB/Mean update] 
+    $UCB(i) = \hat{\mu_i}+ \sqrt{\frac{2 \ln t}{\eta_i}}$;
+    $\hat{\mu_j} = \hat{\mu_j} + \frac{1}{\eta_j} (y_t - \hat{u}_j)$
+    \item[Contextual bandits] Reward is now $y_t = f(x_t,z_t) + \epsilon_t$ with $z_t$ user features. For us: $f(x_i,z_t) = w^T_{x_i}z_t$
+    \item[Hybrid model] Reward is now $y_t = w^T_{x_t} z_t + \beta^T \phi(x_t,z_t) + \epsilon_t$
+    \item[Evaluating bandits] To evaluate, first obtain data log through pure exploration, and then reiterate:
+    \begin{enumerate}
+        \item Get next event $(x_t^{(1)},..,x_t^{(k)},z_t,a_t,y_t)$ from log
+        \item Use algorithm that is testing to pick $a_t'$:
+        \begin{itemize}
+            \item If $a_t'  = a_t$
+            $\Rightarrow$ Feed back reward $y_t$ to the algorithm 
+            \item Else ignore log line         
+        \end{itemize}
+        \item Stop when T event have been kept
+    \end{enumerate}
+\end{description}
+
+\subsection{Submodular Functions}
+\begin{description}
+    \item[Submodulatity] A function $F: 2^V \mapsto \mathbb{R}$ is called submodular iff for all $A \subseteq B, s \notin B$:
+        $$F(A \cup \{s\}) - F(A) \geq F(B \cup \{s\}) - F(B)$$
+    \item[Closedness properties] The following closedness properties hold for submodular functions
+    \begin{description}
+        \item[Linear Combinations] $F(A) = \sum_{i} \lambda_i F_i(A)$, $\lambda_i \geq 0$ 
+        \item[Restriction] $F'(S) = F(S \cap W)$ 
+        \item[Conditiong] $F'(S) = F(S \cup W)$
+        \item[Reflection] $F'(S) = F(V \setminus S)$ 
+    \end{description}
+    \item[Misc 1]For $F_{1,2}(A)$, $\max \{F_1(A),F_2(A) \}$ or $\min \{F_1(A),F_2(A) \}$ \textbf{not} submodular in general.
+    \item[Misc 2]
+    $F(A) = g(|A|)$ where $g: \mathbb{N} \mapsto \mathbb{R}$, then $F$ submodular iff $g$ concave.
+    \item[Lazy Greedy]
+    
+Lazy greedy algorithm for optimizing submodular functions, 
+\begin{enumerate}
+    \item Pick $s_1 = \text{arg } \max_s F(A_i \cup \{s\}) - F(A_i)$
+    \item Keep an ordered list (priority queue) of marginal benefits $\delta_i$ form previous iteration ($\sim$ upper bound on gain).
+    \item Re-evaluate $\delta_i$ only for top element
+    \item $\delta_i$ stays on top, use it, otherwise re-sort. 
+    \item Works because marginal gain is diminishing
+\end{enumerate}
+\end{description}
 
 %\rule{0.3\linewidth}{0.25pt}
 %\scriptsize
@@ -190,5 +346,5 @@ where $w \leftarrow \frac{w}{||w||_2}$, $w \sim \mathcal{N}(0,I)$, $w_i \sim \ma
 %Copyright for template: \copyright\ 2014 Winston Chang
 %\href{http://www.stdout.org/~winston/latex/}{http://www.stdout.org/$\sim$winston/latex/}
 
-%Cheat Sheet By Vincent Ulitzsch and M.G.
+%Cheat Sheet By Vincent Ulitzsch and Mario Gersbach
 \end{document}
